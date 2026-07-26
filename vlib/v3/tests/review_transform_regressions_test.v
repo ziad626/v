@@ -964,6 +964,15 @@ fn make(value int) fn () int {
 	return foo.read
 }
 
+fn make_via_pointer_alias(value int) fn () int {
+	foo := Foo{
+		value: value
+	}
+	p := &foo
+	cb := p.read
+	return cb
+}
+
 fn make_from_pointer(foo &Foo) fn () int {
 	return foo.read
 }
@@ -978,6 +987,7 @@ fn overwrite_stack() {
 fn main() {
 	first := make(11)
 	second := make(22)
+	aliased := make_via_pointer_alias(55)
 	mut durable := &Foo{
 		value: 33
 	}
@@ -989,10 +999,11 @@ fn main() {
 	println(int_str(first()))
 	println(int_str(second()))
 	println(int_str(third()))
+	println(int_str(aliased()))
 }
 '
 	out := run_good(v3_bin, 'escaped_pointer_receiver_addressable_local', source)
-	assert out == '11\n22\n44'
+	assert out == '11\n22\n44\n55'
 }
 
 fn test_returned_mut_fixed_array_capture_uses_durable_context_storage() {
